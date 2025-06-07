@@ -2,47 +2,51 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ .Release.Name }}-{{ .Chart.Name }}
-  namespace: {{ .Release.Namespace }}
+  name: frontend
   labels:
-    app.kubernetes.io/name: {{ .Chart.Name }}
+    app.kubernetes.io/name: sausage-frontend
     app.kubernetes.io/instance: "{{ .Release.Name }}"
     app.kubernetes.io/version: "{{ .Chart.AppVersion }}"
     app.kubernetes.io/managed-by: "{{ .Release.Service }}"
     helm.sh/chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"
-    app.kubernetes.io/component: {{ .Chart.Name }}
-    app.kubernetes.io/part-of: {{ .Release.Name }}
+    app.kubernetes.io/component: frontend
+    app.kubernetes.io/part-of: sausage-store
 spec:
-  revisionHistoryLimit: {{ .Values.revisionHistoryLimit }}
-  replicas: {{ .Values.replicas }}
+  replicas: {{ .Values.frontend.replicas }}
+  revisionHistoryLimit: {{ .Values.frontend.revisionHistoryLimit }}
   strategy:
-    type: {{ .Values.strategy.type }}
+    type: {{ .Values.frontend.strategy.type }}
   selector:
     matchLabels:
-      app: {{ .Release.Name }}-{{ .Chart.Name }}
+      app.kubernetes.io/name: sausage-frontend
+      app.kubernetes.io/instance: "{{ .Release.Name }}"
   template:
     metadata:
       labels:
-        app: {{ .Release.Name }}-{{ .Chart.Name }}
+        app.kubernetes.io/name: sausage-frontend
+        app.kubernetes.io/instance: "{{ .Release.Name }}"
+        app.kubernetes.io/version: "{{ .Chart.AppVersion }}"
+        app.kubernetes.io/managed-by: "{{ .Release.Service }}"
+        helm.sh/chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"
+        app.kubernetes.io/component: frontend
+        app.kubernetes.io/part-of: sausage-store
     spec:
       containers:
-        - name: {{ .Chart.Name }}
-          image: {{ .Values.image }}
-          imagePullPolicy: {{ .Values.global.imagePullPolicy }}
-          resources:
-{{ toYaml .Values.resources | indent 12 }} 
+        - name: frontend
+          image: "{{ .Values.frontend.image }}"
+          imagePullPolicy: {{ .Values.frontend.imagePullPolicy }}
           ports:
-            - name: {{ .Chart.Name }}
-              containerPort: {{ .Values.containerPort }}
+            - name: http
+              containerPort: {{ .Values.frontend.containerPort }}
+              protocol: TCP
+          resources:
+            {{- toYaml .Values.frontend.resources | nindent 12 }}
           volumeMounts:
-          - name: {{ .Release.Name }}-{{ .Chart.Name }}-conf
-            mountPath: /etc/nginx/{{ .Values.nginxConf }}
-            subPath: {{ .Values.nginxConf }}
-            readOnly: true
+            - name: nginx-config
+              mountPath: /etc/nginx/conf.d/default.conf
+              subPath: nginx.conf
+              readOnly: true
       volumes:
-        - name: {{ .Release.Name }}-{{ .Chart.Name }}-conf
+        - name: nginx-config
           configMap:
-            name: {{ .Release.Name }}-{{ .Chart.Name }}-conf
-            items:
-              - key: {{ .Values.nginxConf }}
-                path: {{ .Values.nginxConf }} 
+            name: frontend-nginx-config 

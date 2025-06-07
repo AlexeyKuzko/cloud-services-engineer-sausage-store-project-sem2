@@ -1,8 +1,7 @@
 ---
 apiVersion: v2
-type: application
 name: backend
-description: backend Helm Chart
-
+description: Backend service for Sausage Store
+type: application
 version: 0.1.0
 appVersion: "latest"
