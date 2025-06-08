@@ -9,7 +9,7 @@ env:
   NEXUS_HELM_REPO: ${{ secrets.NEXUS_HELM_REPO }}
   NEXUS_HELM_REPO_USER: ${{ secrets.NEXUS_HELM_REPO_USER }}
   NEXUS_HELM_REPO_PASSWORD: ${{ secrets.NEXUS_HELM_REPO_PASSWORD }}
-  SAUSAGE_STORE_NAMESPACE: YOUR_NAMESPACE
+  SAUSAGE_STORE_NAMESPACE: ${{ secrets.SAUSAGE_STORE_NAMESPACE }}
   KUBE_CONFIG: ${{ secrets.KUBE_CONFIG }}
   VAULT_TOKEN: ${{ secrets.VAULT_TOKEN }}
   DOCKER_USERNAME: ${{ secrets.DOCKER_USER }}
@@ -92,6 +92,7 @@ jobs:
   # Деплоим приложения в кластер Kubernetes с помощью helm-чарт
   deploy_helm_chart_to_kubernetes:
       name: Deploy Helm Chart To Kubernetes
+      needs: add_helm_chart_to_nexus
       runs-on: ubuntu-latest
       steps:
         - uses: actions/checkout@v3
@@ -100,20 +101,20 @@ jobs:
           uses: azure/setup-helm@v3
           with:
             version: v3.12.0
-  
-        - name: Add Nexus Helm repository
+
+        - name: Add Nexus Helm repository # Первым шагом в пайплайне добавьте Helm-репозиторий Nexus
           run: |
             helm repo add nexus ${{ env.NEXUS_HELM_REPO }} \
               --username ${{ env.NEXUS_HELM_REPO_USER }} \
               --password ${{ env.NEXUS_HELM_REPO_PASSWORD }}
             helm repo update
-  
-        - name: Configure kubectl
+
+        - name: Configure kubectl # Затем добавьте в пайплайн kubeconfig, который вы получили в тренажёре. С его помощью вы выполните деплой в свой namespace.
           run: |
             echo "${{ secrets.KUBE_CONFIG }}" > kubeconfig.yaml
             export KUBECONFIG=kubeconfig.yaml
-  
-        - name: Deploy to Kubernetes
+
+        - name: Deploy to Kubernetes # Последний шаг — деплой в кластер Kubernetes с помощью команды helm upgrade.
           run: |
             helm upgrade --install sausage-store nexus/sausage-store-chart \
               --namespace ${{ secrets.SAUSAGE_STORE_NAMESPACE }} \
