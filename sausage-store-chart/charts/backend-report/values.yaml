@@ -5,6 +5,8 @@ image:
 
 replicaCount: 1
 
+revisionHistoryLimit: 3
+
 resources:
   requests:
     memory: 256Mi

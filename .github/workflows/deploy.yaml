@@ -81,8 +81,8 @@ jobs:
         - name: Package Helm chart
           run: |
             cd sausage-store-chart
+            helm dependency update
             helm package .
-            ls -la *.tgz
 
         - name: Push Helm chart to Nexus
           run: |
