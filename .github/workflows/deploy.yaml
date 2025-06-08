@@ -116,6 +116,9 @@ jobs:
 
         - name: Deploy to Kubernetes # Последний шаг — деплой в кластер Kubernetes с помощью команды helm upgrade.
           run: |
+            echo "${{ secrets.KUBE_CONFIG }}" > kubeconfig.yaml
+            export KUBECONFIG=kubeconfig.yaml
+            kubectl config get-contexts
             helm upgrade --install sausage-store nexus/sausage-store-chart \
               --namespace ${{ secrets.SAUSAGE_STORE_NAMESPACE }} \
               --set frontend.fqdn=front-${{ secrets.STUDENT_NAME }}.2sem.students-projects.ru \
