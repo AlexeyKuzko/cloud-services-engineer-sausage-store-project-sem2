@@ -85,9 +85,9 @@ jobs:
 
         - name: Push Helm chart to Nexus
           run: |
-            curl -u ${{ env.NEXUS_HELM_REPO_USER }}:${{ env.NEXUS_HELM_REPO_PASSWORD }} \
+            curl -u "${{ env.NEXUS_HELM_REPO_USER }}:${{ env.NEXUS_HELM_REPO_PASSWORD }}" \
               -F "helm.asset=@sausage-store-chart/sausage-store-0.1.0.tgz" \
-              ${{ env.NEXUS_HELM_REPO }}
+              "${{ env.NEXUS_HELM_REPO }}"
 
   # Деплоим приложения в кластер Kubernetes с помощью helm-чарт
   deploy_helm_chart_to_kubernetes:
@@ -114,11 +114,13 @@ jobs:
             echo "${{ secrets.KUBE_CONFIG }}" > kubeconfig.yaml
             export KUBECONFIG=kubeconfig.yaml
 
-        - name: Deploy to Kubernetes # Последний шаг — деплой в кластер Kubernetes с помощью команды helm upgrade.
+        - name: Deploy to Kubernetes
           run: |
             echo "${{ secrets.KUBE_CONFIG }}" > kubeconfig.yaml
             export KUBECONFIG=kubeconfig.yaml
             kubectl config get-contexts
+            helm repo update
+            helm search repo nexus/sausage-store-chart
             helm upgrade --install sausage-store nexus/sausage-store-chart \
               --namespace ${{ secrets.SAUSAGE_STORE_NAMESPACE }} \
               --set frontend.fqdn=front-${{ secrets.STUDENT_NAME }}.2sem.students-projects.ru \
