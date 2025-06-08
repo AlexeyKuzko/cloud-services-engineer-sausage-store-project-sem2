@@ -1,7 +1,8 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: backend-report
+  name: {{ .Release.Name }}-backend-report
+  namespace: {{ .Release.Namespace }}
   labels:
     app.kubernetes.io/name: sausage-backend-report
     app.kubernetes.io/instance: "{{ .Release.Name }}"
@@ -11,17 +12,22 @@ metadata:
     app.kubernetes.io/component: backend-report
     app.kubernetes.io/part-of: sausage-store
 spec:
-  replicas: {{ .Values.backend-report.replicas }}
+  replicas: {{ .Values.replicaCount }}
   revisionHistoryLimit: {{ .Values.backend-report.revisionHistoryLimit }}
   strategy:
-    type: {{ .Values.backend-report.strategy.type }}
+    type: {{ .Values.deployment.strategy.type }}
+    {{- if eq .Values.deployment.strategy.type "RollingUpdate" }}
+    rollingUpdate:
+      maxSurge: {{ .Values.deployment.strategy.rollingUpdate.maxSurge }}
+      maxUnavailable: {{ .Values.deployment.strategy.rollingUpdate.maxUnavailable }}
+    {{- end }}
   selector:
     matchLabels:
-      app.kubernetes.io/name: sausage-backend-report
-      app.kubernetes.io/instance: "{{ .Release.Name }}"
+      app: {{ .Release.Name }}-backend-report
   template:
     metadata:
       labels:
+        app: {{ .Release.Name }}-backend-report
         app.kubernetes.io/name: sausage-backend-report
         app.kubernetes.io/instance: "{{ .Release.Name }}"
         app.kubernetes.io/version: "{{ .Chart.AppVersion }}"
@@ -32,14 +38,12 @@ spec:
     spec:
       containers:
         - name: backend-report
-          image: "{{ .Values.backend-report.image }}"
-          imagePullPolicy: {{ .Values.backend-report.imagePullPolicy }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
           ports:
-            - name: http
-              containerPort: {{ .Values.backend-report.containerPort }}
-              protocol: TCP
+            - containerPort: {{ .Values.service.port }}
           resources:
-            {{- toYaml .Values.backend-report.resources | nindent 12 }}
+            {{- toYaml .Values.resources | nindent 12 }}
           env:
             - name: PORT
               valueFrom:
@@ -50,4 +54,10 @@ spec:
               valueFrom:
                 secretKeyRef:
                   name: backend-report-secret
-                  key: DB 
+                  key: DB
+          readinessProbe:
+            {{- toYaml .Values.readinessProbe | nindent 12 }}
+          livenessProbe:
+            {{- toYaml .Values.livenessProbe | nindent 12 }}
+          startupProbe:
+            {{- toYaml .Values.startupProbe | nindent 12 }} 
