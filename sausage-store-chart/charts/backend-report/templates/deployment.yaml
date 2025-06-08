@@ -13,7 +13,7 @@ metadata:
     app.kubernetes.io/part-of: sausage-store
 spec:
   replicas: {{ .Values.replicaCount }}
-  revisionHistoryLimit: {{ .Values.backend-report.revisionHistoryLimit }}
+  revisionHistoryLimit: 3
   strategy:
     type: {{ .Values.deployment.strategy.type }}
     {{- if eq .Values.deployment.strategy.type "RollingUpdate" }}
