@@ -1,5 +1,28 @@
 # Sausage Store
 
+```bash
+sausage-store
+├── .github/workflows # Файлы для сборки и деплоя с помощью GitHub Actions
+│   └── main.yaml # Github-workflow файл для GitHub Actions
+├── LICENSE
+├── README.md
+├── backend # Код приложения Backend
+├── backend-report # Код приложения Backend-report
+├── frontend # Код приложения Frontend
+└── sausage-store-chart # Чарты для деплоя
+    ├── Chart.yaml
+    ├── charts
+    │   ├── backend # Чарт приложения Backend
+    │   │   ├── Chart.yaml
+    │   │   └── templates
+    │   ├── frontend # Чарт приложения Frontend
+    │   │   └── templates
+    │   └── infra # Чарт инфраструктурных приложений
+    │       ├── Chart.yaml
+    │       └── templates
+    └── values.yaml
+```
+
 ![image](https://user-images.githubusercontent.com/9394918/121517767-69db8a80-c9f8-11eb-835a-e98ca07fd995.png)
 
 
