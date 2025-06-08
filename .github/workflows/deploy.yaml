@@ -82,9 +82,14 @@ jobs:
           run: |
             cd sausage-store-chart
             helm package .
+            ls -la *.tgz
 
         - name: Push Helm chart to Nexus
           run: |
+            echo "Verifying Helm chart package..."
+            ls -la sausage-store-chart/*.tgz
+            echo "Verifying Nexus repository URL..."
+            echo "NEXUS_HELM_REPO: ${{ env.NEXUS_HELM_REPO }}"
             curl -u "${{ env.NEXUS_HELM_REPO_USER }}:${{ env.NEXUS_HELM_REPO_PASSWORD }}" \
               -F "helm.asset=@sausage-store-chart/sausage-store-0.1.0.tgz" \
               "${{ env.NEXUS_HELM_REPO }}"
