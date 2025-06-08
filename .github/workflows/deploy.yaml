@@ -106,7 +106,7 @@ jobs:
 
         - name: Add Nexus Helm repository # Первым шагом в пайплайне добавьте Helm-репозиторий Nexus
           run: |
-            helm repo add nexus ${{ env.NEXUS_HELM_REPO }} \
+            helm repo add chartmuseum ${{ env.NEXUS_HELM_REPO }} \
               --username ${{ env.NEXUS_HELM_REPO_USER }} \
               --password ${{ env.NEXUS_HELM_REPO_PASSWORD }}
             helm repo update
@@ -120,10 +120,11 @@ jobs:
           run: |
             echo "${{ secrets.KUBE_CONFIG }}" > kubeconfig.yaml
             export KUBECONFIG=kubeconfig.yaml
+            chmod 600 kubeconfig.yaml
             kubectl config get-contexts
             helm repo update
-            helm search repo nexus/sausage-store-chart
-            helm upgrade --install sausage-store nexus/sausage-store-chart \
+            helm search repo chartmuseum/sausage-store-chart
+            helm upgrade --install sausage-store chartmuseum/sausage-store-chart \
               --namespace ${{ secrets.SAUSAGE_STORE_NAMESPACE }} \
               --set frontend.fqdn=front-${{ secrets.STUDENT_NAME }}.2sem.students-projects.ru \
               --set backend.image=${{ env.DOCKER_USERNAME }}/sausage-store/sausage-backend:latest \
