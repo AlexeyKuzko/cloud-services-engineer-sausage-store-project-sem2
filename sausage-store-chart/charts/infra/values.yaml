@@ -15,4 +15,23 @@ postgres:
   db:
     name: sausage_store
     user: store
-    password: storepassword 
+    password: storepassword
+
+mongodb:
+  image:
+    repository: mongo
+    tag: "6.0"
+  persistence:
+    size: 1Gi
+    storageClass: standard
+  resources:
+    requests:
+      memory: 256Mi
+      cpu: 100m
+    limits:
+      memory: 512Mi
+      cpu: 500m
+  env:
+    MONGO_INITDB_ROOT_USERNAME: admin
+    MONGO_INITDB_ROOT_PASSWORD: adminpassword
+    MONGO_INITDB_DATABASE: reports 
