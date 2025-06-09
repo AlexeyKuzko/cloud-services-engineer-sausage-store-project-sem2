@@ -21,7 +21,9 @@ frontend:
     tls:
       secretName: 2sem-students-projects-wildcard-secret
   containerPort: 80
-  image: ${DOCKER_USER}/sausage-store/sausage-frontend:latest
+  image:
+    repository: ${DOCKER_USER}/sausage-store/sausage-frontend
+    tag: latest
   resources:
     requests:
       memory: "128Mi"
@@ -51,7 +53,9 @@ backend:
     rollingUpdate:
       maxSurge: 1
       maxUnavailable: 0
-  image: ${DOCKER_USER}/sausage-store/sausage-backend:latest
+  image:
+    repository: ${DOCKER_USER}/sausage-store/sausage-backend
+    tag: latest
   imagePullPolicy: Always
   resources:
     requests:
@@ -96,7 +100,9 @@ backend-report:
     type: Recreate
   service:
     port: 8080
-  image: ${DOCKER_USER}/sausage-store/sausage-backend-report:latest
+  image:
+    repository: ${DOCKER_USER}/sausage-store/sausage-backend-report
+    tag: latest
   imagePullPolicy: Always
   resources:
     requests:
