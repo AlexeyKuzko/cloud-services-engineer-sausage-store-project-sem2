@@ -1,0 +1,101 @@
+stages:
+  - checkov
+  - plan
+  - apply
+  - terratest
+  - destroy
+
+variables:
+  TF_ROOT: ${CI_PROJECT_DIR}/infra
+  OPERATION:
+    description: "Select CI/CD-operation"
+    value: "terraform"
+    options:
+      - "terraform"
+      - "ansible"
+      - "k8s"
+
+# Checkov security scanning
+checkov:
+  stage: checkov
+  image: bridgecrew/checkov:latest
+  script:
+    - checkov -d $TF_ROOT --config-file $TF_ROOT/.checkov.yml
+  allow_failure: true
+  only:
+    variables:
+      - $OPERATION == "terraform"
+
+# Terraform plan
+plan:
+  stage: plan
+  image: hashicorp/terraform:1.5.0
+  before_script:
+    - cd $TF_ROOT
+    - terraform --version
+  script:
+    - terraform init
+    - terraform plan -var="yc_token=$YC_TOKEN" -var="cloud_id=$CLOUD_ID" -var="folder_id=$FOLDER_ID" -var="project_id=$CI_PROJECT_ID"
+  artifacts:
+    name: plan
+    paths:
+      - $TF_ROOT/.terraform/
+    expire_in: 1 week
+  only:
+    variables:
+      - $OPERATION == "terraform"
+
+# Terraform apply
+apply:
+  stage: apply
+  image: hashicorp/terraform:1.5.0
+  before_script:
+    - cd $TF_ROOT
+    - terraform --version
+  script:
+    - terraform init
+    - terraform apply -var="yc_token=$YC_TOKEN" -var="cloud_id=$CLOUD_ID" -var="folder_id=$FOLDER_ID" -var="project_id=$CI_PROJECT_ID" -auto-approve
+  artifacts:
+    name: apply
+    paths:
+      - $TF_ROOT/.terraform/
+    expire_in: 1 week
+  dependencies:
+    - plan
+  only:
+    variables:
+      - $OPERATION == "terraform"
+
+# Terratest
+terratest:
+  stage: terratest
+  image: golang:1.19
+  before_script:
+    - cd $TF_ROOT/test
+    - go mod init terratest
+    - go mod tidy
+  script:
+    - go test -v
+  needs:
+    - apply
+  dependencies:
+    - apply
+  allow_failure: false
+  only:
+    variables:
+      - $OPERATION == "terraform"
+
+# Terraform destroy
+destroy:
+  stage: destroy
+  image: hashicorp/terraform:1.5.0
+  before_script:
+    - cd $TF_ROOT
+    - terraform --version
+  script:
+    - terraform init
+    - terraform destroy -var="yc_token=$YC_TOKEN" -var="cloud_id=$CLOUD_ID" -var="folder_id=$FOLDER_ID" -var="project_id=$CI_PROJECT_ID" -auto-approve
+  when: manual
+  only:
+    variables:
+      - $OPERATION == "terraform"
